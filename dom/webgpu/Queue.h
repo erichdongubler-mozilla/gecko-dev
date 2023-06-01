@@ -65,7 +65,7 @@ class Queue final : public ObjectBase, public ChildOf<Device> {
       const dom::GPUExtent3D& aCopySize, ErrorResult& aRv);
 
  private:
-  virtual ~Queue();
+  ~Queue() override;
   void Cleanup() {}
 
   RefPtr<WebGPUChild> mBridge;
