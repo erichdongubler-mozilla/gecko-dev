@@ -1065,7 +1065,7 @@ dictionary GPURenderPassTimestampWrites {
 
 dictionary GPURenderPassDescriptor
          : GPUObjectDescriptorBase {
-    required sequence<GPURenderPassColorAttachment> colorAttachments;
+    required sequence<GPURenderPassColorAttachment?> colorAttachments;
     GPURenderPassDepthStencilAttachment depthStencilAttachment;
     GPUQuerySet occlusionQuerySet;
     GPURenderPassTimestampWrites timestampWrites;
