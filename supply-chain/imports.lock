@@ -634,8 +634,8 @@ user-login = "dtolnay"
 user-name = "David Tolnay"
 
 [[publisher.serde_yaml]]
-version = "0.8.26"
-when = "2022-07-16"
+version = "0.9.34+deprecated"
+when = "2024-03-25"
 user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
@@ -784,6 +784,13 @@ version = "0.28.2"
 when = "2024-10-08"
 user-id = 127697
 user-login = "bendk"
+
+[[publisher.unsafe-libyaml]]
+version = "0.2.11"
+when = "2024-03-17"
+user-id = 3618
+user-login = "dtolnay"
+user-name = "David Tolnay"
 
 [[publisher.utf8_iter]]
 version = "1.0.4"

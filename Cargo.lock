@@ -2738,7 +2738,7 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "http",
- "indexmap 2.2.6",
+ "indexmap",
  "slab",
  "tokio",
  "tokio-util",
@@ -3152,13 +3152,6 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.999.999"
-dependencies = [
- "indexmap 2.2.6",
-]
-
-[[package]]
-name = "indexmap"
 version = "2.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "168fb715dda47215e360912c096649d23d58bf392ac62f73919e831745e40f26"
@@ -3315,7 +3308,7 @@ version = "0.1.0"
 source = "git+https://github.com/mozilla-spidermonkey/jsparagus?rev=61f399c53a641ebd3077c1f39f054f6d396a633c#61f399c53a641ebd3077c1f39f054f6d396a633c"
 dependencies = [
  "bumpalo",
- "indexmap 2.2.6",
+ "indexmap",
 ]
 
 [[package]]
@@ -3325,7 +3318,7 @@ source = "git+https://github.com/mozilla-spidermonkey/jsparagus?rev=61f399c53a64
 dependencies = [
  "bumpalo",
  "byteorder",
- "indexmap 2.2.6",
+ "indexmap",
  "jsparagus-ast",
  "jsparagus-scope",
  "jsparagus-stencil",
@@ -3363,7 +3356,7 @@ name = "jsparagus-scope"
 version = "0.1.0"
 source = "git+https://github.com/mozilla-spidermonkey/jsparagus?rev=61f399c53a641ebd3077c1f39f054f6d396a633c#61f399c53a641ebd3077c1f39f054f6d396a633c"
 dependencies = [
- "indexmap 2.2.6",
+ "indexmap",
  "jsparagus-ast",
  "jsparagus-stencil",
 ]
@@ -4326,7 +4319,7 @@ dependencies = [
  "icu_locid",
  "icu_properties",
  "idna",
- "indexmap 2.2.6",
+ "indexmap",
  "itertools",
  "libc",
  "lmdb-rkv-sys",
@@ -4478,7 +4471,7 @@ dependencies = [
  "cfg_aliases",
  "codespan-reporting",
  "hexf-parse",
- "indexmap 2.2.6",
+ "indexmap",
  "log",
  "rustc-hash",
  "serde",
@@ -4572,7 +4565,7 @@ version = "0.11.0"
 source = "git+https://github.com/mozilla/neqo?tag=v0.11.0#c6d5502fb5b827473e7c5d7c4c380275cdb3d931"
 dependencies = [
  "enum-map",
- "indexmap 2.2.6",
+ "indexmap",
  "log",
  "neqo-common",
  "neqo-crypto",
@@ -5070,7 +5063,7 @@ name = "plist"
 version = "1.3.1"
 dependencies = [
  "base64 0.13.999",
- "indexmap 2.2.6",
+ "indexmap",
  "line-wrap",
  "serde",
  "time 0.3.36",
@@ -5783,7 +5776,7 @@ version = "1.0.116"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e17db7126d17feb94eb3fad46bf1a96b034e8aacbc2e775fe81505f8b0b2813"
 dependencies = [
- "indexmap 2.2.6",
+ "indexmap",
  "itoa",
  "ryu",
  "serde",
@@ -5845,14 +5838,15 @@ dependencies = [
 
 [[package]]
 name = "serde_yaml"
-version = "0.8.26"
+version = "0.9.34+deprecated"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "578a7433b776b56a35785ed5ce9a7e777ac0598aac5a6dd1b4b18a307c7fc71b"
+checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
 dependencies = [
- "indexmap 1.999.999",
+ "indexmap",
+ "itoa",
  "ryu",
  "serde",
- "yaml-rust",
+ "unsafe-libyaml",
 ]
 
 [[package]]
@@ -5869,7 +5863,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f27daf6ed3fc7ffd5ea3ce9f684fe351c47e50f2fdbb6236e2bad0b440dbe408"
 dependencies = [
  "data-encoding",
- "indexmap 2.2.6",
+ "indexmap",
  "rust_decimal",
 ]
 
@@ -6117,7 +6111,7 @@ dependencies = [
  "fxhash",
  "gecko-profiler",
  "icu_segmenter",
- "indexmap 2.2.6",
+ "indexmap",
  "itertools",
  "itoa",
  "lazy_static",
@@ -6978,6 +6972,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ace0b4755d0a2959962769239d56267f8a024fef2d9b32666b3dcd0946b0906"
 
 [[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
+
+[[package]]
 name = "url"
 version = "2.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7127,7 +7127,7 @@ dependencies = [
  "anyhow",
  "arbitrary",
  "flagset",
- "indexmap 2.2.6",
+ "indexmap",
  "leb128",
  "wasm-encoder",
 ]
@@ -7139,7 +7139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c771866898879073c53b565a6c7b49953795159836714ac56a5befb581227c5"
 dependencies = [
  "bitflags 2.7.0",
- "indexmap 2.2.6",
+ "indexmap",
 ]
 
 [[package]]
@@ -7329,7 +7329,7 @@ dependencies = [
  "bitflags 2.7.0",
  "cfg_aliases",
  "document-features",
- "indexmap 2.2.6",
+ "indexmap",
  "log",
  "naga",
  "once_cell",
@@ -7799,7 +7799,7 @@ dependencies = [
  "crossbeam-utils",
  "displaydoc",
  "flate2",
- "indexmap 2.2.6",
+ "indexmap",
  "memchr",
  "thiserror 1.999.999",
 ]
@@ -7808,3 +7808,7 @@ dependencies = [
 name = "zlib-rs"
 version = "0.2.1"
 source = "git+https://github.com/memorysafety/zlib-rs?rev=4aa430ccb77537d0d60dab8db993ca51bb1194c5#4aa430ccb77537d0d60dab8db993ca51bb1194c5"
+
+[[patch.unused]]
+name = "indexmap"
+version = "1.999.999"
