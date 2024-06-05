@@ -234,6 +234,13 @@ struct FeatureImplementationStatus {
         // return implemented(WGPUWEBGPU_FEATURE_SUBGROUPS);
         return unimplemented(
             "https://bugzilla.mozilla.org/show_bug.cgi?id=1955417");
+
+      case dom::GPUFeatureName::Core_features_and_limits:
+        // NOTE: `0` means that no bits are set in calling code, but this is on
+        // purpose. We currently _always_ return this feature elsewhere. If this
+        // actually corresponds to a value in the future, remove the
+        // unconditional setting of this feature!
+        return implemented(0);
     }
     MOZ_CRASH("Bad GPUFeatureName.");
   }
@@ -335,6 +342,18 @@ Adapter::Adapter(Instance* const aParent, WebGPUChild* const aBridge,
       // feature.
     }
   }
+  // TODO: Once we implement compat mode (see
+  // <https://bugzilla.mozilla.org/show_bug.cgi?id=1905951>), do not report this
+  // unconditionally.
+  //
+  // Meanwhile, the current spec. proposal's `Initialization` section (see
+  // <https://github.com/gpuweb/gpuweb/blob/main/proposals/compatibility-mode.md#initialization>)
+  // says:
+  //
+  // > Core-defaulting adapters *always* support the
+  // > `"core-features-and-limits"` feature. It is *automatically enabled* on
+  // > devices created from such adapters.
+  mFeatures->Add(dom::GPUFeatureName::Core_features_and_limits, ignoredRv);
 
   // We clamp limits to defaults when requestDevice is called, but
   // we return the actual limits when only requestAdapter is called.
@@ -358,17 +377,6 @@ void Adapter::Cleanup() {
 const RefPtr<SupportedFeatures>& Adapter::Features() const { return mFeatures; }
 const RefPtr<SupportedLimits>& Adapter::Limits() const { return mLimits; }
 const RefPtr<AdapterInfo>& Adapter::Info() const { return mInfo; }
-
-bool Adapter::IsFallbackAdapter() const {
-  if (GetParentObject()->ShouldResistFingerprinting(
-          RFPTarget::WebGPUIsFallbackAdapter)) {
-    // Always report hardware support for WebGPU.
-    // This behaviour matches with media capabilities API.
-    return false;
-  }
-
-  return mInfoInner->device_type == ffi::WGPUDeviceType::WGPUDeviceType_Cpu;
-}
 
 bool Adapter::SupportExternalTextureInSwapChain() const {
   return mInfoInner->support_use_external_texture_in_swap_chain;
@@ -541,75 +549,73 @@ already_AddRefed<dom::Promise> Adapter::RequestDevice(
     // -
     // Validate Limits
 
-    if (aDesc.mRequiredLimits.WasPassed()) {
-      static const auto LIMIT_BY_JS_KEY = []() {
-        std::unordered_map<std::string_view, Limit> ret;
-        for (const auto limit : MakeInclusiveEnumeratedRange(Limit::_LAST)) {
-          const auto jsKeyU8 = ToJsKey(limit);
-          ret[jsKeyU8] = limit;
-        }
-        return ret;
-      }();
+    static const auto LIMIT_BY_JS_KEY = []() {
+      std::unordered_map<std::string_view, Limit> ret;
+      for (const auto limit : MakeInclusiveEnumeratedRange(Limit::_LAST)) {
+        const auto jsKeyU8 = ToJsKey(limit);
+        ret[jsKeyU8] = limit;
+      }
+      return ret;
+    }();
 
-      for (const auto& entry : aDesc.mRequiredLimits.Value().Entries()) {
-        const auto& keyU16 = entry.mKey;
-        const nsCString keyU8 = ToACString(keyU16);
-        const auto itr = LIMIT_BY_JS_KEY.find(keyU8.get());
-        if (itr == LIMIT_BY_JS_KEY.end()) {
-          nsPrintfCString msg("requestDevice: Limit '%s' not recognized.",
-                              keyU8.get());
+    for (const auto& entry : aDesc.mRequiredLimits.Entries()) {
+      const auto& keyU16 = entry.mKey;
+      const nsCString keyU8 = ToACString(keyU16);
+      const auto itr = LIMIT_BY_JS_KEY.find(keyU8.get());
+      if (itr == LIMIT_BY_JS_KEY.end()) {
+        nsPrintfCString msg("requestDevice: Limit '%s' not recognized.",
+                            keyU8.get());
+        promise->MaybeRejectWithOperationError(msg);
+        return;
+      }
+
+      const auto& limit = itr->second;
+      uint64_t requestedValue = entry.mValue;
+      const auto supportedValue = GetLimit(*mLimits->mFfi, limit);
+      if (StringBeginsWith(keyU8, "max"_ns)) {
+        if (requestedValue > supportedValue) {
+          nsPrintfCString msg(
+              "requestDevice: Request for limit '%s' must be <= supported "
+              "%s, was %s.",
+              keyU8.get(), std::to_string(supportedValue).c_str(),
+              std::to_string(requestedValue).c_str());
           promise->MaybeRejectWithOperationError(msg);
           return;
         }
-
-        const auto& limit = itr->second;
-        uint64_t requestedValue = entry.mValue;
-        const auto supportedValue = GetLimit(*mLimits->mFfi, limit);
-        if (StringBeginsWith(keyU8, "max"_ns)) {
-          if (requestedValue > supportedValue) {
-            nsPrintfCString msg(
-                "requestDevice: Request for limit '%s' must be <= supported "
-                "%s, was %s.",
-                keyU8.get(), std::to_string(supportedValue).c_str(),
-                std::to_string(requestedValue).c_str());
-            promise->MaybeRejectWithOperationError(msg);
-            return;
-          }
-          // Clamp to default if lower than default
-          requestedValue =
-              std::max(requestedValue, GetLimit(deviceLimits, limit));
-        } else {
-          MOZ_ASSERT(StringBeginsWith(keyU8, "min"_ns));
-          if (requestedValue < supportedValue) {
-            nsPrintfCString msg(
-                "requestDevice: Request for limit '%s' must be >= supported "
-                "%s, was %s.",
-                keyU8.get(), std::to_string(supportedValue).c_str(),
-                std::to_string(requestedValue).c_str());
-            promise->MaybeRejectWithOperationError(msg);
-            return;
-          }
-          if (StringEndsWith(keyU8, "Alignment"_ns)) {
-            if (!IsPowerOfTwo(requestedValue)) {
-              nsPrintfCString msg(
-                  "requestDevice: Request for limit '%s' must be a power of "
-                  "two, "
-                  "was %s.",
-                  keyU8.get(), std::to_string(requestedValue).c_str());
-              promise->MaybeRejectWithOperationError(msg);
-              return;
-            }
-          }
-          /// Clamp to default if higher than default
-          /// Changing implementation in a way that increases fingerprinting
-          /// surface? Please create a bug in [Core::Privacy: Anti
-          /// Tracking](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Privacy%3A%20Anti-Tracking)
-          requestedValue =
-              std::min(requestedValue, GetLimit(deviceLimits, limit));
+        // Clamp to default if lower than default
+        requestedValue =
+            std::max(requestedValue, GetLimit(deviceLimits, limit));
+      } else {
+        MOZ_ASSERT(StringBeginsWith(keyU8, "min"_ns));
+        if (requestedValue < supportedValue) {
+          nsPrintfCString msg(
+              "requestDevice: Request for limit '%s' must be >= supported "
+              "%s, was %s.",
+              keyU8.get(), std::to_string(supportedValue).c_str(),
+              std::to_string(requestedValue).c_str());
+          promise->MaybeRejectWithOperationError(msg);
+          return;
         }
-
-        SetLimit(&deviceLimits, limit, requestedValue);
+        if (StringEndsWith(keyU8, "Alignment"_ns)) {
+          if (!IsPowerOfTwo(requestedValue)) {
+            nsPrintfCString msg(
+                "requestDevice: Request for limit '%s' must be a power of "
+                "two, "
+                "was %s.",
+                keyU8.get(), std::to_string(requestedValue).c_str());
+            promise->MaybeRejectWithOperationError(msg);
+            return;
+          }
+        }
+        /// Clamp to default if higher than default
+        /// Changing implementation in a way that increases fingerprinting
+        /// surface? Please create a bug in [Core::Privacy: Anti
+        /// Tracking](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Privacy%3A%20Anti-Tracking)
+        requestedValue =
+            std::min(requestedValue, GetLimit(deviceLimits, limit));
       }
+
+      SetLimit(&deviceLimits, limit, requestedValue);
     }
 
     // -
