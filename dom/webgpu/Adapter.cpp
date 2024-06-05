@@ -21,6 +21,54 @@ namespace mozilla::webgpu {
 GPU_IMPL_CYCLE_COLLECTION(AdapterInfo, mParent)
 GPU_IMPL_JS_WRAP(AdapterInfo)
 
+uint32_t AdapterInfo::SubgroupMinSize() const {
+  // From the spec. at
+  // <https://www.w3.org/TR/2025/CRD-webgpu-20250319/#dom-gpuadapterinfo-subgroupminsize>:
+  //
+  // > If `["subgroups"](https://www.w3.org/TR/webgpu/#subgroups)` is supported,
+  // > set `subgroupMinSize` to the smallest supported subgroup size. Otherwise,
+  // > set this value to 4.
+  // >
+  // > Note: To preserve privacy, the user agent may choose to not support some
+  // > features or provide values for the property which do not distinguish
+  // > different devices, but are still usable (e.g. use the default value of
+  // > 4 for all devices).
+
+  // TODO: When we support `subgroups`, use the supported amount instead:
+  // <https://bugzilla.mozilla.org/show_bug.cgi?id=1955417>
+  return 4;
+}
+
+uint32_t AdapterInfo::SubgroupMaxSize() const {
+  // From the spec. at
+  // <https://www.w3.org/TR/2025/CRD-webgpu-20250319/#dom-gpuadapterinfo-subgroupmaxsize>:
+  //
+  // > If `["subgroups"](https://www.w3.org/TR/webgpu/#subgroups)` is supported,
+  // > set `subgroupMaxSize` to the largest supported subgroup size. Otherwise,
+  // > set this value to 128.
+  // >
+  // > Note: To preserve privacy, the user agent may choose to not support some
+  // > features or provide values for the property which do not distinguish
+  // > different devices, but are still usable (e.g. use the default value of
+  // > 128 for all devices).
+
+  // TODO: When we support `subgroups`, use the supported amount instead:
+  // <https://bugzilla.mozilla.org/show_bug.cgi?id=1955417>
+  return 128;
+}
+
+bool AdapterInfo::IsFallbackAdapter() const {
+  if (GetParentObject()->ShouldResistFingerprinting(
+          RFPTarget::WebGPUIsFallbackAdapter)) {
+    // Always report hardware support for WebGPU.
+    // This behaviour matches with media capabilities API.
+    return false;
+  }
+
+  return mAboutSupportInfo->device_type ==
+         ffi::WGPUDeviceType::WGPUDeviceType_Cpu;
+}
+
 void AdapterInfo::GetWgpuName(nsString& s) const {
   s = mAboutSupportInfo->name;
 }
@@ -173,6 +221,11 @@ struct FeatureImplementationStatus {
         // return implemented(WGPUWEBGPU_FEATURE_DUAL_SOURCE_BLENDING);
         return unimplemented(
             "https://bugzilla.mozilla.org/show_bug.cgi?id=1924328");
+
+      case dom::GPUFeatureName::Subgroups:
+        // return implemented(WGPUWEBGPU_FEATURE_SUBGROUPS);
+        return unimplemented(
+            "https://bugzilla.mozilla.org/show_bug.cgi?id=1955417");
     }
     MOZ_CRASH("Bad GPUFeatureName.");
   }
@@ -297,17 +350,6 @@ void Adapter::Cleanup() {
 const RefPtr<SupportedFeatures>& Adapter::Features() const { return mFeatures; }
 const RefPtr<SupportedLimits>& Adapter::Limits() const { return mLimits; }
 const RefPtr<AdapterInfo>& Adapter::Info() const { return mInfo; }
-
-bool Adapter::IsFallbackAdapter() const {
-  if (GetParentObject()->ShouldResistFingerprinting(
-          RFPTarget::WebGPUIsFallbackAdapter)) {
-    // Always report hardware support for WebGPU.
-    // This behaviour matches with media capabilities API.
-    return false;
-  }
-
-  return mInfoInner->device_type == ffi::WGPUDeviceType::WGPUDeviceType_Cpu;
-}
 
 bool Adapter::SupportExternalTextureInSwapChain() const {
   return mInfoInner->support_use_external_texture_in_swap_chain;
@@ -480,75 +522,73 @@ already_AddRefed<dom::Promise> Adapter::RequestDevice(
     // -
     // Validate Limits
 
-    if (aDesc.mRequiredLimits.WasPassed()) {
-      static const auto LIMIT_BY_JS_KEY = []() {
-        std::unordered_map<std::string_view, Limit> ret;
-        for (const auto limit : MakeInclusiveEnumeratedRange(Limit::_LAST)) {
-          const auto jsKeyU8 = ToJsKey(limit);
-          ret[jsKeyU8] = limit;
-        }
-        return ret;
-      }();
+    static const auto LIMIT_BY_JS_KEY = []() {
+      std::unordered_map<std::string_view, Limit> ret;
+      for (const auto limit : MakeInclusiveEnumeratedRange(Limit::_LAST)) {
+        const auto jsKeyU8 = ToJsKey(limit);
+        ret[jsKeyU8] = limit;
+      }
+      return ret;
+    }();
 
-      for (const auto& entry : aDesc.mRequiredLimits.Value().Entries()) {
-        const auto& keyU16 = entry.mKey;
-        const nsCString keyU8 = ToACString(keyU16);
-        const auto itr = LIMIT_BY_JS_KEY.find(keyU8.get());
-        if (itr == LIMIT_BY_JS_KEY.end()) {
-          nsPrintfCString msg("requestDevice: Limit '%s' not recognized.",
-                              keyU8.get());
+    for (const auto& entry : aDesc.mRequiredLimits.Entries()) {
+      const auto& keyU16 = entry.mKey;
+      const nsCString keyU8 = ToACString(keyU16);
+      const auto itr = LIMIT_BY_JS_KEY.find(keyU8.get());
+      if (itr == LIMIT_BY_JS_KEY.end()) {
+        nsPrintfCString msg("requestDevice: Limit '%s' not recognized.",
+                            keyU8.get());
+        promise->MaybeRejectWithOperationError(msg);
+        return;
+      }
+
+      const auto& limit = itr->second;
+      uint64_t requestedValue = entry.mValue;
+      const auto supportedValue = GetLimit(*mLimits->mFfi, limit);
+      if (StringBeginsWith(keyU8, "max"_ns)) {
+        if (requestedValue > supportedValue) {
+          nsPrintfCString msg(
+              "requestDevice: Request for limit '%s' must be <= supported "
+              "%s, was %s.",
+              keyU8.get(), std::to_string(supportedValue).c_str(),
+              std::to_string(requestedValue).c_str());
           promise->MaybeRejectWithOperationError(msg);
           return;
         }
-
-        const auto& limit = itr->second;
-        uint64_t requestedValue = entry.mValue;
-        const auto supportedValue = GetLimit(*mLimits->mFfi, limit);
-        if (StringBeginsWith(keyU8, "max"_ns)) {
-          if (requestedValue > supportedValue) {
-            nsPrintfCString msg(
-                "requestDevice: Request for limit '%s' must be <= supported "
-                "%s, was %s.",
-                keyU8.get(), std::to_string(supportedValue).c_str(),
-                std::to_string(requestedValue).c_str());
-            promise->MaybeRejectWithOperationError(msg);
-            return;
-          }
-          // Clamp to default if lower than default
-          requestedValue =
-              std::max(requestedValue, GetLimit(deviceLimits, limit));
-        } else {
-          MOZ_ASSERT(StringBeginsWith(keyU8, "min"_ns));
-          if (requestedValue < supportedValue) {
-            nsPrintfCString msg(
-                "requestDevice: Request for limit '%s' must be >= supported "
-                "%s, was %s.",
-                keyU8.get(), std::to_string(supportedValue).c_str(),
-                std::to_string(requestedValue).c_str());
-            promise->MaybeRejectWithOperationError(msg);
-            return;
-          }
-          if (StringEndsWith(keyU8, "Alignment"_ns)) {
-            if (!IsPowerOfTwo(requestedValue)) {
-              nsPrintfCString msg(
-                  "requestDevice: Request for limit '%s' must be a power of "
-                  "two, "
-                  "was %s.",
-                  keyU8.get(), std::to_string(requestedValue).c_str());
-              promise->MaybeRejectWithOperationError(msg);
-              return;
-            }
-          }
-          /// Clamp to default if higher than default
-          /// Changing implementation in a way that increases fingerprinting
-          /// surface? Please create a bug in [Core::Privacy: Anti
-          /// Tracking](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Privacy%3A%20Anti-Tracking)
-          requestedValue =
-              std::min(requestedValue, GetLimit(deviceLimits, limit));
+        // Clamp to default if lower than default
+        requestedValue =
+            std::max(requestedValue, GetLimit(deviceLimits, limit));
+      } else {
+        MOZ_ASSERT(StringBeginsWith(keyU8, "min"_ns));
+        if (requestedValue < supportedValue) {
+          nsPrintfCString msg(
+              "requestDevice: Request for limit '%s' must be >= supported "
+              "%s, was %s.",
+              keyU8.get(), std::to_string(supportedValue).c_str(),
+              std::to_string(requestedValue).c_str());
+          promise->MaybeRejectWithOperationError(msg);
+          return;
         }
-
-        SetLimit(&deviceLimits, limit, requestedValue);
+        if (StringEndsWith(keyU8, "Alignment"_ns)) {
+          if (!IsPowerOfTwo(requestedValue)) {
+            nsPrintfCString msg(
+                "requestDevice: Request for limit '%s' must be a power of "
+                "two, "
+                "was %s.",
+                keyU8.get(), std::to_string(requestedValue).c_str());
+            promise->MaybeRejectWithOperationError(msg);
+            return;
+          }
+        }
+        /// Clamp to default if higher than default
+        /// Changing implementation in a way that increases fingerprinting
+        /// surface? Please create a bug in [Core::Privacy: Anti
+        /// Tracking](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Privacy%3A%20Anti-Tracking)
+        requestedValue =
+            std::min(requestedValue, GetLimit(deviceLimits, limit));
       }
+
+      SetLimit(&deviceLimits, limit, requestedValue);
     }
 
     // -
