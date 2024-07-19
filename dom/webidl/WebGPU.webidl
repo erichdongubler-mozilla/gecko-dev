@@ -925,7 +925,7 @@ dictionary GPUTexelCopyTextureInfo {
 
 dictionary GPUCopyExternalImageDestInfo
          : GPUTexelCopyTextureInfo {
-    //GPUPredefinedColorSpace colorSpace = "srgb"; //TODO
+    PredefinedColorSpace colorSpace = "srgb";
     boolean premultipliedAlpha = false;
 };
 
