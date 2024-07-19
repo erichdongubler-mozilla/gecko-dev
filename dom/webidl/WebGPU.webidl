@@ -1079,6 +1079,7 @@ dictionary GPURenderPassDescriptor
 
 dictionary GPURenderPassColorAttachment {
     required GPUTextureView view;
+    GPUIntegerCoordinate depthSlice;
     GPUTextureView resolveTarget;
 
     GPUColor clearValue;
