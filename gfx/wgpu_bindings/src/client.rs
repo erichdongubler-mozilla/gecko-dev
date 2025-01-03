@@ -549,6 +549,7 @@ pub extern "C" fn wgpu_client_create_texture_view(
             base_array_layer: desc.base_array_layer,
             array_layer_count: desc.array_layer_count.map(|ptr| *ptr),
         },
+        usage: None,
     };
 
     let action = TextureAction::CreateView(id, wgpu_desc);
