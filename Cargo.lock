@@ -417,7 +417,7 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1300dca7a20730cce82c33fbf8795862556645ef5e9ee835390278c3fe1eb1d0"
 dependencies = [
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -528,7 +528,7 @@ dependencies = [
  "rand",
  "regex",
  "tempfile",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -593,7 +593,7 @@ dependencies = [
  "minidump-common",
  "nom",
  "range-map",
- "thiserror",
+ "thiserror 1.999.999",
  "tracing",
 ]
 
@@ -701,7 +701,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -1487,7 +1487,7 @@ name = "detect_win32k_conflicts"
 version = "0.1.0"
 dependencies = [
  "log",
- "thiserror",
+ "thiserror 1.999.999",
  "winapi",
 ]
 
@@ -1912,7 +1912,7 @@ version = "0.1.0"
 source = "git+https://github.com/mozilla/application-services?rev=03cf4a362408b9caffa6848aae2fcf472a789460#03cf4a362408b9caffa6848aae2fcf472a789460"
 dependencies = [
  "serde_json",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -2032,7 +2032,7 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0abed97648395c902868fee9026de96483933faa54ea3b40d652f7dfe61ca78"
 dependencies = [
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -2066,7 +2066,7 @@ dependencies = [
  "once_cell",
  "static_prefs",
  "thin-vec",
- "thiserror",
+ "thiserror 1.999.999",
  "url",
  "viaduct",
  "xpcom",
@@ -2294,7 +2294,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "tempfile",
- "thiserror",
+ "thiserror 1.999.999",
  "url",
  "uuid",
  "webdriver",
@@ -2578,7 +2578,7 @@ dependencies = [
  "rkv",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.999.999",
  "time 0.1.45",
  "uniffi",
  "uuid",
@@ -2689,7 +2689,7 @@ checksum = "c151a2a5ef800297b4e79efa4f4bec035c5f51d5ae587287c9b952bdf734cacd"
 dependencies = [
  "log",
  "presser",
- "thiserror",
+ "thiserror 1.999.999",
  "windows",
 ]
 
@@ -3453,7 +3453,7 @@ dependencies = [
  "storage_variant",
  "tempfile",
  "thin-vec",
- "thiserror",
+ "thiserror 1.999.999",
  "xpcom",
 ]
 
@@ -3729,7 +3729,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b6086acc74bc23f56b60e88bb082d505e23849d68d6c0f12bb6a7ad5c60e03e"
 dependencies = [
- "thiserror",
+ "thiserror 1.999.999",
  "zerocopy",
  "zerocopy-derive",
 ]
@@ -3940,7 +3940,7 @@ dependencies = [
  "procfs-core",
  "range-map",
  "scroll",
- "thiserror",
+ "thiserror 1.999.999",
  "time 0.3.36",
  "tracing",
  "uuid",
@@ -4025,7 +4025,7 @@ dependencies = [
  "procfs-core",
  "scroll",
  "tempfile",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -4069,7 +4069,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -4092,7 +4092,7 @@ dependencies = [
  "rand_core",
  "rayon",
  "serde",
- "thiserror",
+ "thiserror 1.999.999",
  "wasm-bindgen",
  "zeroize",
 ]
@@ -4103,7 +4103,7 @@ version = "0.5.3"
 source = "git+https://github.com/beurdouche/mls-rs?rev=eedb37e50e3fca51863f460755afd632137da57c#eedb37e50e3fca51863f460755afd632137da57c"
 dependencies = [
  "mls-rs-codec-derive",
- "thiserror",
+ "thiserror 1.999.999",
  "wasm-bindgen",
 ]
 
@@ -4129,7 +4129,7 @@ dependencies = [
  "mls-rs-codec",
  "serde",
  "serde_bytes",
- "thiserror",
+ "thiserror 1.999.999",
  "wasm-bindgen",
  "zeroize",
 ]
@@ -4144,7 +4144,7 @@ dependencies = [
  "maybe-async",
  "mls-rs-core",
  "mls-rs-crypto-traits",
- "thiserror",
+ "thiserror 1.999.999",
  "zeroize",
 ]
 
@@ -4162,7 +4162,7 @@ dependencies = [
  "nss-gk-api",
  "rand_core",
  "serde",
- "thiserror",
+ "thiserror 1.999.999",
  "zeroize",
 ]
 
@@ -4184,7 +4184,7 @@ dependencies = [
  "async-trait",
  "maybe-async",
  "mls-rs-core",
- "thiserror",
+ "thiserror 1.999.999",
  "wasm-bindgen",
 ]
 
@@ -4199,7 +4199,7 @@ dependencies = [
  "mls-rs-core",
  "rand",
  "rusqlite",
- "thiserror",
+ "thiserror 1.999.999",
  "zeroize",
 ]
 
@@ -4267,7 +4267,7 @@ dependencies = [
  "mozannotation_client",
  "process_reader",
  "thin-vec",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -4282,7 +4282,7 @@ dependencies = [
  "once_cell",
  "regex",
  "tempfile",
- "thiserror",
+ "thiserror 1.999.999",
  "unix_path",
  "uuid",
  "walkdir",
@@ -4381,7 +4381,7 @@ name = "mozprofile"
 version = "0.9.3"
 dependencies = [
  "tempfile",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -4392,7 +4392,7 @@ dependencies = [
  "log",
  "mozprofile",
  "plist",
- "thiserror",
+ "thiserror 1.999.999",
  "winreg",
 ]
 
@@ -4414,7 +4414,7 @@ dependencies = [
  "regex",
  "rust-ini",
  "semver",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -4483,7 +4483,7 @@ dependencies = [
  "serde",
  "spirv",
  "termcolor",
- "thiserror",
+ "thiserror 1.999.999",
  "unicode-xid",
 ]
 
@@ -4802,7 +4802,7 @@ dependencies = [
  "mozbuild",
  "serde",
  "serde_derive",
- "thiserror",
+ "thiserror 1.999.999",
  "toml",
 ]
 
@@ -4923,7 +4923,7 @@ checksum = "6ec3b43050c38ffb9de87e17d874e9956e3a9131b343c9b7b7002597727c3891"
 dependencies = [
  "arrayvec",
  "bitflags 2.6.0",
- "thiserror",
+ "thiserror 1.999.999",
  "zerocopy",
  "zerocopy-derive",
 ]
@@ -5121,7 +5121,7 @@ dependencies = [
  "serde",
  "sha3",
  "subtle",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -5143,7 +5143,7 @@ dependencies = [
  "memoffset 0.9.0",
  "mozilla-central-workspace-hack",
  "scroll",
- "thiserror",
+ "thiserror 1.999.999",
  "windows-sys",
 ]
 
@@ -5421,7 +5421,7 @@ dependencies = [
  "serde_json",
  "serde_path_to_error",
  "sql-support",
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
  "url",
 ]
@@ -5442,7 +5442,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
  "url",
  "viaduct",
@@ -5490,7 +5490,7 @@ dependencies = [
  "paste",
  "serde",
  "serde_derive",
- "thiserror",
+ "thiserror 1.999.999",
  "url",
  "uuid",
 ]
@@ -6010,7 +6010,7 @@ dependencies = [
  "parking_lot",
  "rusqlite",
  "tempfile",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
@@ -6196,7 +6196,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sql-support",
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
  "url",
  "viaduct",
@@ -6256,7 +6256,7 @@ dependencies = [
  "serde_json",
  "serde_path_to_error",
  "sync-guid",
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
 ]
 
@@ -6298,7 +6298,7 @@ dependencies = [
  "sql-support",
  "sync-guid",
  "sync15",
- "thiserror",
+ "thiserror 1.999.999",
  "types",
  "uniffi",
  "url",
@@ -6358,18 +6358,25 @@ checksum = "aac81b6fd6beb5884b0cf3321b8117e6e5d47ecb6fc89f414cfdcca8b2fe2dd8"
 
 [[package]]
 name = "thiserror"
-version = "1.0.69"
+version = "1.999.999"
+dependencies = [
+ "thiserror 2.0.9",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
+checksum = "f072643fd0190df67a8bab670c20ef5d8737177d6ac6b2e9a236cb096206b2cc"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.69"
+version = "2.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+checksum = "7b50fa271071aae2e6ee85f842e2e28ba8cd2c5fb67f11fcb1fd70b276f9e7d4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6730,7 +6737,7 @@ dependencies = [
 name = "uniffi-example-arithmetic"
 version = "0.22.0"
 dependencies = [
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
 ]
 
@@ -6771,7 +6778,7 @@ name = "uniffi-example-todolist"
 version = "0.22.0"
 dependencies = [
  "once_cell",
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
 ]
 
@@ -6779,7 +6786,7 @@ dependencies = [
 name = "uniffi-fixture-callbacks"
 version = "0.21.0"
 dependencies = [
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
 ]
 
@@ -6787,7 +6794,7 @@ dependencies = [
 name = "uniffi-fixture-external-types"
 version = "0.21.0"
 dependencies = [
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
  "uniffi-example-geometry",
  "uniffi-example-sprites",
@@ -7002,7 +7009,7 @@ dependencies = [
  "prost",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.999.999",
  "url",
 ]
 
@@ -7141,7 +7148,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "thiserror",
+ "thiserror 1.999.999",
  "time 0.3.36",
  "tokio",
  "tokio-stream",
@@ -7168,7 +7175,7 @@ dependencies = [
  "sql-support",
  "sync-guid",
  "sync15",
- "thiserror",
+ "thiserror 1.999.999",
  "uniffi",
  "url",
 ]
@@ -7308,7 +7315,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "smallvec",
- "thiserror",
+ "thiserror 1.999.999",
  "wgpu-hal",
  "wgpu-types",
 ]
@@ -7344,7 +7351,7 @@ dependencies = [
  "raw-window-handle",
  "rustc-hash",
  "smallvec",
- "thiserror",
+ "thiserror 1.999.999",
  "wasm-bindgen",
  "web-sys",
  "wgpu-types",
@@ -7769,7 +7776,7 @@ dependencies = [
  "flate2",
  "indexmap 2.2.6",
  "memchr",
- "thiserror",
+ "thiserror 1.999.999",
 ]
 
 [[package]]
