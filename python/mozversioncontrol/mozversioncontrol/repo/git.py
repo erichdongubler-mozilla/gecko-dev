@@ -53,6 +53,9 @@ class GitRepository(Repository):
             if "hg.mozilla.org" in url and not url.endswith("hg.mozilla.org/try"):
                 yield name
 
+            if "github.com/mozilla/gecko-dev" in url:
+                yield name
+
     def get_mozilla_remote_args(self) -> List[str]:
         """Return a list of `--remotes` arguments to limit commits to official remotes."""
         official_remotes = [
