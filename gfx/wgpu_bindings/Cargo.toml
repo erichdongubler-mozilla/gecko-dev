@@ -55,7 +55,7 @@ rev = "723abcb1d3d182f9a4bf973f02c6da39a4090f23"
 features = ["oom_panic", "device_lost_panic", "internal_error_panic"]
 
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.58", default-features = false, features = ["Win32_Graphics_Direct3D12"]}
+windows = { version = "0.59", default-features = false, features = ["Win32_Graphics_Direct3D12"]}
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc = "0.2"
