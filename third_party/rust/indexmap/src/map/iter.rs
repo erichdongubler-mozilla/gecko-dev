@@ -221,6 +221,7 @@ impl<K, V> Default for IterMut2<'_, K, V> {
 ///
 /// This `struct` is created by the [`IndexMap::into_iter`] method
 /// (provided by the [`IntoIterator`] trait). See its documentation for more.
+#[derive(Clone)]
 pub struct IntoIter<K, V> {
     iter: vec::IntoIter<Bucket<K, V>>,
 }
@@ -666,6 +667,7 @@ where
     K: Hash + Eq,
     S: BuildHasher,
 {
+    #[track_caller]
     pub(super) fn new<R>(map: &'a mut IndexMap<K, V, S>, range: R, replace_with: I) -> Self
     where
         R: RangeBounds<usize>,

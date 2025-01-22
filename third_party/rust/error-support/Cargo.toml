@@ -51,5 +51,8 @@ version = "0.28.2"
 version = "0.28.2"
 features = ["build"]
 
+[features]
+backtrace = ["dep:backtrace"]
+
 [lints.clippy]
 empty-line-after-doc-comments = "allow"

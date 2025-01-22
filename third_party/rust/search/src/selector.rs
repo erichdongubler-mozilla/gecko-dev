@@ -69,7 +69,7 @@ impl SearchEngineSelector {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::*;
+    use crate::{types::*, SearchApiError};
     use pretty_assertions::assert_eq;
     use serde_json::json;
 
@@ -241,6 +241,10 @@ mod tests {
                       "search": {
                         "base": "https://example.com/1",
                         "method": "GET",
+                        "params": [{
+                          "name": "search-name",
+                          "enterpriseValue": "enterprise-value",
+                        }],
                         "searchTermParamName": "q"
                       },
                       "suggestions": {
@@ -259,6 +263,14 @@ mod tests {
                           "name": "trending-name",
                           "experimentConfig": "trending-experiment-value",
                         }]
+                      },
+                      "searchForm": {
+                        "base": "https://example.com/search-form",
+                        "method": "GET",
+                        "params": [{
+                          "name": "search-form-name",
+                          "value": "search-form-value",
+                        }]
                       }
                     }
                   },
@@ -273,7 +285,7 @@ mod tests {
                   "identifier": "test2",
                   "base": {
                     "name": "Test 2",
-                    "classification": "general",
+                    // No classification specified to test fallback.
                     "urls": {
                       "search": {
                         "base": "https://example.com/2",
@@ -325,7 +337,12 @@ mod tests {
                             search: SearchEngineUrl {
                                 base: "https://example.com/1".to_string(),
                                 method: "GET".to_string(),
-                                params: Vec::new(),
+                                params: vec![SearchUrlParam {
+                                    name: "search-name".to_string(),
+                                    value: None,
+                                    enterprise_value: Some("enterprise-value".to_string()),
+                                    experiment_config: None
+                                }],
                                 search_term_param_name: Some("q".to_string())
                             },
                             suggestions: Some(SearchEngineUrl {
@@ -334,6 +351,7 @@ mod tests {
                                 params: vec![SearchUrlParam {
                                     name: "suggestion-name".to_string(),
                                     value: Some("suggestion-value".to_string()),
+                                    enterprise_value: None,
                                     experiment_config: None
                                 }],
                                 search_term_param_name: Some("suggest".to_string())
@@ -344,25 +362,37 @@ mod tests {
                                 params: vec![SearchUrlParam {
                                     name: "trending-name".to_string(),
                                     value: None,
+                                    enterprise_value: None,
                                     experiment_config: Some(
                                         "trending-experiment-value".to_string()
                                     )
                                 }],
                                 search_term_param_name: None
-                            })
+                            }),
+                            search_form: Some(SearchEngineUrl {
+                                base: "https://example.com/search-form".to_string(),
+                                method: "GET".to_string(),
+                                params: vec![SearchUrlParam {
+                                    name: "search-form-name".to_string(),
+                                    value: Some("search-form-value".to_string()),
+                                    experiment_config: None,
+                                    enterprise_value: None,
+                                }],
+                                search_term_param_name: None,
+                            }),
                         },
                         ..Default::default()
                     },
                     SearchEngineDefinition {
                         aliases: Vec::new(),
                         charset: "UTF-8".to_string(),
-                        classification: SearchEngineClassification::General,
+                        classification: SearchEngineClassification::Unknown,
                         identifier: "test2".to_string(),
                         name: "Test 2".to_string(),
                         optional: false,
                         order_hint: None,
                         partner_code: String::new(),
-                        telemetry_suffix: None,
+                        telemetry_suffix: String::new(),
                         urls: SearchEngineUrls {
                             search: SearchEngineUrl {
                                 base: "https://example.com/2".to_string(),
@@ -371,7 +401,8 @@ mod tests {
                                 search_term_param_name: Some("search".to_string())
                             },
                             suggestions: None,
-                            trending: None
+                            trending: None,
+                            search_form: None
                         }
                     }
                 ),
@@ -391,10 +422,10 @@ mod tests {
                 {
                   "recordType": "engine",
                   "identifier": "test1",
-                  "partnerCode": "star",
                   "base": {
                     "name": "Test 1",
                     "classification": "general",
+                    "partnerCode": "star",
                     "urls": {
                       "search": {
                         "base": "https://example.com/1",
@@ -416,6 +447,14 @@ mod tests {
                         "params": [{
                           "name": "area",
                           "experimentConfig": "area-param",
+                        }]
+                      },
+                      "searchForm": {
+                        "base": "https://example.com/search-form",
+                        "method": "GET",
+                        "params": [{
+                          "name": "search-form-name",
+                          "value": "search-form-value",
                         }]
                       }
                     }
@@ -497,6 +536,7 @@ mod tests {
                         classification: SearchEngineClassification::General,
                         identifier: "test1".to_string(),
                         name: "Test 1".to_string(),
+                        partner_code: "star".to_string(),
                         urls: SearchEngineUrls {
                             search: SearchEngineUrl {
                                 base: "https://example.com/1".to_string(),
@@ -504,6 +544,7 @@ mod tests {
                                 params: vec![SearchUrlParam {
                                     name: "mission".to_string(),
                                     value: Some("ongoing".to_string()),
+                                    enterprise_value: None,
                                     experiment_config: None
                                 }],
                                 search_term_param_name: Some("q".to_string())
@@ -514,6 +555,7 @@ mod tests {
                                 params: vec![SearchUrlParam {
                                     name: "type".to_string(),
                                     value: Some("space".to_string()),
+                                    enterprise_value: None,
                                     experiment_config: None
                                 }],
                                 search_term_param_name: Some("suggest".to_string())
@@ -524,10 +566,22 @@ mod tests {
                                 params: vec![SearchUrlParam {
                                     name: "area".to_string(),
                                     value: None,
+                                    enterprise_value: None,
                                     experiment_config: Some("area-param".to_string())
                                 }],
                                 search_term_param_name: None
-                            })
+                            }),
+                            search_form: Some(SearchEngineUrl {
+                                base: "https://example.com/search-form".to_string(),
+                                method: "GET".to_string(),
+                                params: vec![SearchUrlParam {
+                                    name: "search-form-name".to_string(),
+                                    value: Some("search-form-value".to_string()),
+                                    enterprise_value: None,
+                                    experiment_config: None,
+                                }],
+                                search_term_param_name: None,
+                            }),
                         },
                         ..Default::default()
                     },
@@ -538,7 +592,7 @@ mod tests {
                         name: "Test 2".to_string(),
                         optional: true,
                         partner_code: "ship".to_string(),
-                        telemetry_suffix: Some("E".to_string()),
+                        telemetry_suffix: "E".to_string(),
                         urls: SearchEngineUrls {
                             search: SearchEngineUrl {
                                 base: "https://example.com/2".to_string(),
@@ -555,6 +609,257 @@ mod tests {
                 app_private_default_engine_id: Some("test2".to_string())
             }
         )
+    }
+
+    #[test]
+    fn test_filter_engine_configuration_handles_basic_subvariants() {
+        let selector = Arc::new(SearchEngineSelector::new());
+
+        let config_result = Arc::clone(&selector).set_search_config(
+            json!({
+              "data": [
+                {
+                  "recordType": "engine",
+                  "identifier": "test1",
+                  "base": {
+                    "name": "Test 1",
+                    "partnerCode": "star",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com/1",
+                        "method": "GET",
+                        "searchTermParamName": "q"
+                      },
+                      "suggestions": {
+                        "base": "https://example.com/suggestions",
+                        "method": "POST",
+                        "params": [{
+                          "name": "type",
+                          "value": "space",
+                        }],
+                        "searchTermParamName": "suggest"
+                      },
+                      "trending": {
+                        "base": "https://example.com/trending",
+                        "method": "GET",
+                        "params": [{
+                          "name": "area",
+                          "experimentConfig": "area-param",
+                        }]
+                      },
+                      "searchForm": {
+                        "base": "https://example.com/search-form",
+                        "method": "GET",
+                        "params": [{
+                          "name": "search-form-name",
+                          "value": "search-form-value",
+                        }]
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true
+                    },
+                  },
+                  {
+                    "environment": {
+                      "regions": ["FR"]
+                    },
+                    "urls": {
+                      "search": {
+                        "method": "POST",
+                        "params": [{
+                          "name": "variant-param-name",
+                          "value": "variant-param-value"
+                        }]
+                      }
+                    },
+                    "subVariants": [
+                      {
+                        "environment": {
+                          "locales": ["fr"]
+                        },
+                        "partnerCode": "fr-partner-code",
+                        "telemetrySuffix": "fr-telemetry-suffix"
+                      },
+                      {
+                        "environment": {
+                          "locales": ["en-CA"]
+                        },
+                        "urls": {
+                          "search": {
+                            "method": "GET",
+                            "params": [{
+                              "name": "en-ca-param-name",
+                              "value": "en-ca-param-value"
+                            }]
+                          }
+                        },
+                      }
+                    ]
+                  }],
+                },
+                {
+                  "recordType": "defaultEngines",
+                  "globalDefault": "test1"
+                }
+              ]
+            })
+            .to_string(),
+        );
+        assert!(
+            config_result.is_ok(),
+            "Should have set the configuration successfully. {:?}",
+            config_result
+        );
+
+        let mut result = Arc::clone(&selector).filter_engine_configuration(SearchUserEnvironment {
+            region: "FR".into(),
+            locale: "fr".into(),
+            ..Default::default()
+        });
+
+        assert!(
+            result.is_ok(),
+            "Should have filtered the configuration without error. {:?}",
+            result
+        );
+        assert_eq!(
+            result.unwrap(),
+            RefinedSearchConfig {
+                engines: vec!(SearchEngineDefinition {
+                    charset: "UTF-8".to_string(),
+                    identifier: "test1".to_string(),
+                    name: "Test 1".to_string(),
+                    partner_code: "fr-partner-code".to_string(),
+                    telemetry_suffix: "fr-telemetry-suffix".to_string(),
+                    urls: SearchEngineUrls {
+                        search: SearchEngineUrl {
+                            base: "https://example.com/1".to_string(),
+                            method: "POST".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "variant-param-name".to_string(),
+                                value: Some("variant-param-value".to_string()),
+                                enterprise_value: None,
+                                experiment_config: None
+                            }],
+                            search_term_param_name: Some("q".to_string())
+                        },
+                        suggestions: Some(SearchEngineUrl {
+                            base: "https://example.com/suggestions".to_string(),
+                            method: "POST".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "type".to_string(),
+                                value: Some("space".to_string()),
+                                enterprise_value: None,
+                                experiment_config: None
+                            }],
+                            search_term_param_name: Some("suggest".to_string())
+                        }),
+                        trending: Some(SearchEngineUrl {
+                            base: "https://example.com/trending".to_string(),
+                            method: "GET".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "area".to_string(),
+                                value: None,
+                                enterprise_value: None,
+                                experiment_config: Some("area-param".to_string())
+                            }],
+                            search_term_param_name: None
+                        }),
+                        search_form: Some(SearchEngineUrl {
+                            base: "https://example.com/search-form".to_string(),
+                            method: "GET".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "search-form-name".to_string(),
+                                value: Some("search-form-value".to_string()),
+                                enterprise_value: None,
+                                experiment_config: None,
+                            }],
+                            search_term_param_name: None,
+                        }),
+                    },
+                    ..Default::default()
+                }),
+                app_default_engine_id: Some("test1".to_string()),
+                app_private_default_engine_id: None
+            },
+            "Should have correctly matched and merged the fr locale sub-variant."
+        );
+
+        result = selector.filter_engine_configuration(SearchUserEnvironment {
+            region: "FR".into(),
+            locale: "en-CA".into(),
+            ..Default::default()
+        });
+
+        assert!(
+            result.is_ok(),
+            "Should have filtered the configuration without error. {:?}",
+            result
+        );
+        assert_eq!(
+            result.unwrap(),
+            RefinedSearchConfig {
+                engines: vec!(SearchEngineDefinition {
+                    charset: "UTF-8".to_string(),
+                    identifier: "test1".to_string(),
+                    name: "Test 1".to_string(),
+                    partner_code: "star".to_string(),
+                    urls: SearchEngineUrls {
+                        search: SearchEngineUrl {
+                            base: "https://example.com/1".to_string(),
+                            method: "GET".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "en-ca-param-name".to_string(),
+                                value: Some("en-ca-param-value".to_string()),
+                                enterprise_value: None,
+                                experiment_config: None
+                            }],
+                            search_term_param_name: Some("q".to_string())
+                        },
+                        suggestions: Some(SearchEngineUrl {
+                            base: "https://example.com/suggestions".to_string(),
+                            method: "POST".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "type".to_string(),
+                                value: Some("space".to_string()),
+                                enterprise_value: None,
+                                experiment_config: None
+                            }],
+                            search_term_param_name: Some("suggest".to_string())
+                        }),
+                        trending: Some(SearchEngineUrl {
+                            base: "https://example.com/trending".to_string(),
+                            method: "GET".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "area".to_string(),
+                                value: None,
+                                enterprise_value: None,
+                                experiment_config: Some("area-param".to_string())
+                            }],
+                            search_term_param_name: None
+                        }),
+                        search_form: Some(SearchEngineUrl {
+                            base: "https://example.com/search-form".to_string(),
+                            method: "GET".to_string(),
+                            params: vec![SearchUrlParam {
+                                name: "search-form-name".to_string(),
+                                value: Some("search-form-value".to_string()),
+                                enterprise_value: None,
+                                experiment_config: None,
+                            }],
+                            search_term_param_name: None,
+                        }),
+                    },
+                    ..Default::default()
+                }),
+                app_default_engine_id: Some("test1".to_string()),
+                app_private_default_engine_id: None
+            },
+            "Should have correctly matched and merged the en-CA locale sub-variant."
+        );
     }
 
     #[test]
@@ -871,56 +1176,55 @@ mod tests {
             "Should have set the configuration successfully. {:?}",
             config_result
         );
-        let expected_engines = vec![
-            SearchEngineDefinition {
-                charset: "UTF-8".to_string(),
-                classification: SearchEngineClassification::General,
-                identifier: "test".to_string(),
-                name: "Test".to_string(),
-                urls: SearchEngineUrls {
-                    search: SearchEngineUrl {
-                        base: "https://example.com".to_string(),
-                        method: "GET".to_string(),
-                        params: Vec::new(),
-                        search_term_param_name: None,
-                    },
-                    ..Default::default()
+
+        let test_engine = SearchEngineDefinition {
+            charset: "UTF-8".to_string(),
+            classification: SearchEngineClassification::General,
+            identifier: "test".to_string(),
+            name: "Test".to_string(),
+            urls: SearchEngineUrls {
+                search: SearchEngineUrl {
+                    base: "https://example.com".to_string(),
+                    method: "GET".to_string(),
+                    params: Vec::new(),
+                    search_term_param_name: None,
                 },
                 ..Default::default()
             },
-            SearchEngineDefinition {
-                charset: "UTF-8".to_string(),
-                classification: SearchEngineClassification::General,
-                identifier: "distro-default".to_string(),
-                name: "Distribution Default".to_string(),
-                urls: SearchEngineUrls {
-                    search: SearchEngineUrl {
-                        base: "https://example.com".to_string(),
-                        method: "GET".to_string(),
-                        params: Vec::new(),
-                        search_term_param_name: None,
-                    },
-                    ..Default::default()
+            ..Default::default()
+        };
+        let distro_default_engine = SearchEngineDefinition {
+            charset: "UTF-8".to_string(),
+            classification: SearchEngineClassification::General,
+            identifier: "distro-default".to_string(),
+            name: "Distribution Default".to_string(),
+            urls: SearchEngineUrls {
+                search: SearchEngineUrl {
+                    base: "https://example.com".to_string(),
+                    method: "GET".to_string(),
+                    params: Vec::new(),
+                    search_term_param_name: None,
                 },
                 ..Default::default()
             },
-            SearchEngineDefinition {
-                charset: "UTF-8".to_string(),
-                classification: SearchEngineClassification::General,
-                identifier: "private-default-FR".to_string(),
-                name: "Private default FR".to_string(),
-                urls: SearchEngineUrls {
-                    search: SearchEngineUrl {
-                        base: "https://example.com".to_string(),
-                        method: "GET".to_string(),
-                        params: Vec::new(),
-                        search_term_param_name: None,
-                    },
-                    ..Default::default()
+            ..Default::default()
+        };
+        let private_default_fr_engine = SearchEngineDefinition {
+            charset: "UTF-8".to_string(),
+            classification: SearchEngineClassification::General,
+            identifier: "private-default-FR".to_string(),
+            name: "Private default FR".to_string(),
+            urls: SearchEngineUrls {
+                search: SearchEngineUrl {
+                    base: "https://example.com".to_string(),
+                    method: "GET".to_string(),
+                    params: Vec::new(),
+                    search_term_param_name: None,
                 },
                 ..Default::default()
             },
-        ];
+            ..Default::default()
+        };
 
         let result = Arc::clone(&selector).filter_engine_configuration(SearchUserEnvironment {
             distribution_id: "test-distro".to_string(),
@@ -934,7 +1238,11 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             RefinedSearchConfig {
-                engines: expected_engines.clone(),
+                engines: vec![
+                    distro_default_engine.clone(),
+                    private_default_fr_engine.clone(),
+                    test_engine.clone(),
+                ],
                 app_default_engine_id: Some("distro-default".to_string()),
                 app_private_default_engine_id: None
             },
@@ -954,11 +1262,320 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             RefinedSearchConfig {
-                engines: expected_engines,
+                engines: vec![
+                    test_engine,
+                    private_default_fr_engine,
+                    distro_default_engine,
+                ],
                 app_default_engine_id: Some("test".to_string()),
                 app_private_default_engine_id: Some("private-default-FR".to_string())
             },
             "Should have selected the private default engine for the matching specific default"
+        );
+    }
+
+    #[test]
+    fn test_filter_engine_orders() {
+        let selector = Arc::new(SearchEngineSelector::new());
+
+        let engine_order_config = Arc::clone(&selector).set_search_config(
+            json!({
+              "data": [
+                {
+                  "recordType": "engine",
+                  "identifier": "after-defaults",
+                  "base": {
+                    "name": "after-defaults",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true,
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "b-engine",
+                  "base": {
+                    "name": "b-engine",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "a-engine",
+                  "base": {
+                    "name": "a-engine",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true,
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "default-engine",
+                  "base": {
+                    "name": "default-engine",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true,
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "default-private-engine",
+                  "base": {
+                    "name": "default-private-engine",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true,
+                    }
+                  }],
+                },
+                {
+                  "recordType": "defaultEngines",
+                  "globalDefault": "default-engine",
+                  "globalDefaultPrivate": "default-private-engine",
+                },
+                {
+                  "recordType": "engineOrders",
+                  "orders": [
+                    {
+                      "environment": {
+                        "locales": ["en-CA"],
+                        "regions": ["CA"],
+                      },
+                      "order": ["after-defaults"],
+                    },
+                  ],
+                },
+              ]
+            })
+            .to_string(),
+        );
+        assert!(
+            engine_order_config.is_ok(),
+            "Should have set the configuration successfully. {:?}",
+            engine_order_config
+        );
+
+        fn assert_actual_engines_equals_expected(
+            result: Result<RefinedSearchConfig, SearchApiError>,
+            expected_engine_orders: Vec<String>,
+            message: &str,
+        ) {
+            assert!(
+                result.is_ok(),
+                "Should have filtered the configuration without error. {:?}",
+                result
+            );
+
+            let refined_config = result.unwrap();
+            let actual_engine_orders: Vec<String> = refined_config
+                .engines
+                .into_iter()
+                .map(|e| e.identifier)
+                .collect();
+
+            assert_eq!(actual_engine_orders, expected_engine_orders, "{}", message);
+        }
+
+        assert_actual_engines_equals_expected(
+            Arc::clone(&selector).filter_engine_configuration(SearchUserEnvironment {
+                locale: "en-CA".into(),
+                region: "CA".into(),
+                ..Default::default()
+            }),
+            vec![
+                "default-engine".to_string(),
+                "default-private-engine".to_string(),
+                "after-defaults".to_string(),
+                "a-engine".to_string(),
+                "b-engine".to_string(),
+            ],
+            "Should order the default engine first, default private engine second, and the rest of the engines based on order hint then alphabetically."
+        );
+
+        let starts_with_wiki_config = Arc::clone(&selector).set_search_config(
+            json!({
+              "data": [
+                {
+                  "recordType": "engine",
+                  "identifier": "wiki-ca",
+                  "base": {
+                    "name": "wiki-ca",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "locales": ["en-CA"],
+                      "regions": ["CA"],
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "wiki-uk",
+                  "base": {
+                    "name": "wiki-uk",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "locales": ["en-GB"],
+                      "regions": ["GB"],
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "engine-1",
+                  "base": {
+                    "name": "engine-1",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true,
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engine",
+                  "identifier": "engine-2",
+                  "base": {
+                    "name": "engine-2",
+                    "classification": "general",
+                    "urls": {
+                      "search": {
+                        "base": "https://example.com",
+                        "method": "GET"
+                      }
+                    }
+                  },
+                  "variants": [{
+                    "environment": {
+                      "allRegionsAndLocales": true,
+                    }
+                  }],
+                },
+                {
+                  "recordType": "engineOrders",
+                  "orders": [
+                    {
+                      "environment": {
+                        "locales": ["en-CA"],
+                        "regions": ["CA"],
+                      },
+                      "order": ["wiki*", "engine-1", "engine-2"],
+                    },
+                    {
+                      "environment": {
+                        "locales": ["en-GB"],
+                        "regions": ["GB"],
+                      },
+                      "order": ["wiki*", "engine-1", "engine-2"],
+                    },
+                  ],
+                },
+              ]
+            })
+            .to_string(),
+        );
+        assert!(
+            starts_with_wiki_config.is_ok(),
+            "Should have set the configuration successfully. {:?}",
+            starts_with_wiki_config
+        );
+
+        assert_actual_engines_equals_expected(
+            Arc::clone(&selector).filter_engine_configuration(SearchUserEnvironment {
+                locale: "en-CA".into(),
+                region: "CA".into(),
+                ..Default::default()
+            }),
+            vec![
+                "wiki-ca".to_string(),
+                "engine-1".to_string(),
+                "engine-2".to_string(),
+            ],
+            "Should list the wiki-ca engine and other engines in correct orders with the en-CA and CA locale region environment."
+        );
+
+        assert_actual_engines_equals_expected(
+            Arc::clone(&selector).filter_engine_configuration(SearchUserEnvironment {
+                locale: "en-GB".into(),
+                region: "GB".into(),
+                ..Default::default()
+            }),
+            vec![
+                "wiki-uk".to_string(),
+                "engine-1".to_string(),
+                "engine-2".to_string(),
+            ],
+            "Should list the wiki-uk engine and other engines in correct orders with the en-GB and GB locale region environment."
         );
     }
 }
