@@ -98,7 +98,7 @@ linux64-rust-1.84:
 
 # A patched rust toolchain that allows us to use sanitizers in our vendored
 # build environment. See the rust fetch's comments for more details.
-linux64-rust-1.81-dev:
+linux64-rust-1.82-dev:
     description: "build rust from source"
     worker-type: b-linux-large-gcp
     treeherder:
@@ -125,7 +125,7 @@ linux64-rust-1.81-dev:
                 default: linux64-rust-dev
     fetches:
         fetch:
-            - rust-1.81.0
+            - rust-1.82.0
         toolchain:
             - linux64-clang-toolchain
             - linux64-toolchain-sysroot
