@@ -250,7 +250,6 @@ windows11-64-2009-qr/debug:
             msix: repackage-signing-msix-win64/debug
             default: build-signing-win64/debug
     test-sets:
-        - webgpu
         - windows11-2009-tests
 
 windows11-64-2009-qr/opt:
@@ -261,7 +260,6 @@ windows11-64-2009-qr/opt:
             default: build-signing-win64/opt
     test-sets:
         - awsy
-        - webgpu
         - windows11-2009-tests
 
 windows11-64-2009-shippable-qr/opt:
@@ -305,6 +303,7 @@ windows11-64-24h2/debug:
             default: build-signing-win64/debug
     test-sets:
         - web-platform-tests
+        - webgpu
         - windows11-24h2-tests
 
 windows11-64-24h2/opt:
@@ -318,6 +317,7 @@ windows11-64-24h2/opt:
         - desktop-screenshot-capture
         - web-platform-tests
         - web-platform-tests-backlog
+        - webgpu
         - windows11-24h2-tests
         - talos-xperf
 
