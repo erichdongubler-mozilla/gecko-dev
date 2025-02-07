@@ -1,0 +1,24 @@
+{
+    "parameters": {
+        "optimize_target_tasks": false,
+        "try_task_config": {
+            "env": {
+                "TRY_SELECTOR": "fuzzy"
+            },
+            "tasks": [
+                "build-linux64-asan/debug",
+                "build-linux64-asan/opt",
+                "build-linux64-tsan/opt",
+                "build-linux64/debug",
+                "build-linux64/opt",
+                "build-macosx64/debug",
+                "build-macosx64/opt",
+                "build-win64-asan/debug",
+                "build-win64-asan/opt",
+                "build-win64/debug",
+                "build-win64/opt"
+            ]
+        }
+    },
+    "version": 2
+}
