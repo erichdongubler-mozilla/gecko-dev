@@ -155,6 +155,7 @@ pub extern "C" fn wgpu_server_new(owner: *mut c_void, use_dxc: bool) -> *mut Glo
                 dx12: wgt::Dx12BackendOptions {
                     shader_compiler: dx12_shader_compiler,
                 },
+                noop: wgt::NoopBackendOptions { enable: false },
             },
         },
     );
@@ -376,7 +377,7 @@ pub unsafe extern "C" fn wgpu_server_adapter_pack_info(
             let info = AdapterInformation {
                 id,
                 limits: restrict_limits(global.adapter_limits(id)),
-                features: global.adapter_features(id),
+                features: global.adapter_features(id).features_webgpu,
                 name,
                 vendor,
                 device,
