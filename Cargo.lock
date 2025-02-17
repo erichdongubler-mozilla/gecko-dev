@@ -2333,15 +2333,23 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.14"
+version = "0.2.999"
+dependencies = [
+ "getrandom 0.3.1",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94b22e06ecb0110981051723910cbf0b5f5e09a2062dd7663334ee79a9d1286c"
+checksum = "43a49c392881ce6d5c3b8cb70f98717b7c07aabbdff06687b9030dbfbe2725f8"
 dependencies = [
  "cfg-if",
  "js-sys",
  "libc",
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasi 0.13.3+wasi-0.2.2",
  "wasm-bindgen",
+ "windows-targets",
 ]
 
 [[package]]
@@ -3979,7 +3987,7 @@ dependencies = [
  "hermit-abi",
  "libc",
  "log",
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasi 0.11.0+wasi-snapshot-preview999",
  "windows-sys",
 ]
 
@@ -4008,7 +4016,7 @@ dependencies = [
  "cfg-if",
  "debug_tree",
  "futures",
- "getrandom",
+ "getrandom 0.2.999",
  "hex",
  "itertools",
  "maybe-async",
@@ -4080,7 +4088,7 @@ name = "mls-rs-crypto-nss"
 version = "0.1.0"
 source = "git+https://github.com/beurdouche/mls-rs?rev=b747d7efb85a776b97ad8afa8d1b32893fa5efa3#b747d7efb85a776b97ad8afa8d1b32893fa5efa3"
 dependencies = [
- "getrandom",
+ "getrandom 0.2.999",
  "hex",
  "maybe-async",
  "mls-rs-core",
@@ -4253,7 +4261,7 @@ dependencies = [
  "futures-executor",
  "futures-sink",
  "futures-util",
- "getrandom",
+ "getrandom 0.2.999",
  "hashbrown 0.13.999",
  "hex",
  "hyper",
@@ -5062,7 +5070,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5cec5eb0d28eee4ea74be34b28ed4c625e88c54ff83c21b412a5ea7cc48624ae"
 dependencies = [
  "byteorder",
- "getrandom",
+ "getrandom 0.2.999",
  "rand_core",
  "serde",
  "sha3",
@@ -5256,7 +5264,7 @@ version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
- "getrandom",
+ "getrandom 0.2.999",
 ]
 
 [[package]]
@@ -6960,7 +6968,7 @@ version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1674845326ee10d37ca60470760d4288a6f80f304007d92e5c53bab78c9cfd79"
 dependencies = [
- "getrandom",
+ "getrandom 0.2.999",
  "serde",
 ]
 
@@ -7048,14 +7056,24 @@ dependencies = [
 name = "wasi"
 version = "0.10.0+wasi-snapshot-preview999"
 dependencies = [
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasi 0.13.3+wasi-0.2.2",
 ]
 
 [[package]]
 name = "wasi"
-version = "0.11.0+wasi-snapshot-preview1"
+version = "0.11.0+wasi-snapshot-preview999"
+dependencies = [
+ "wasi 0.13.3+wasi-0.2.2",
+]
+
+[[package]]
+name = "wasi"
+version = "0.13.3+wasi-0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+checksum = "26816d2e1a4a36a2940b96c5296ce403917633dff8f3440e9b236ed6f6bacad2"
+dependencies = [
+ "wit-bindgen-rt",
+]
 
 [[package]]
 name = "wasm-bindgen"
@@ -7510,6 +7528,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d129932f4644ac2396cb456385cbf9e63b5b30c6e8dc4820bdca4eb082037a5"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "wit-bindgen-rt"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3268f3d866458b787f390cf61f4bbb563b922d091359f9608842999eaee3943c"
+dependencies = [
+ "bitflags 2.7.0",
 ]
 
 [[package]]

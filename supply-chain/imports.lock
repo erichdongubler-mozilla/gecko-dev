@@ -885,6 +885,12 @@ user-id = 64539
 user-login = "kennykerr"
 user-name = "Kenny Kerr"
 
+[[publisher.wit-bindgen-rt]]
+version = "0.33.0"
+when = "2024-09-30"
+user-id = 73222
+user-login = "wasmtime-publish"
+
 [[publisher.zeitstempel]]
 version = "0.1.1"
 when = "2021-03-18"
@@ -940,6 +946,18 @@ by a Bytecode Alliance maintainer and it owned by the Bytecode Alliance itself.
 """
 
 [[audits.bytecode-alliance.wildcard-audits.wast]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+user-id = 73222 # wasmtime-publish
+start = "2023-01-01"
+end = "2025-05-08"
+notes = """
+The Bytecode Alliance uses the `wasmtime-publish` crates.io account to automate
+publication of this crate from CI. This repository requires all PRs are reviewed
+by a Bytecode Alliance maintainer and it owned by the Bytecode Alliance itself.
+"""
+
+[[audits.bytecode-alliance.wildcard-audits.wit-bindgen-rt]]
 who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 user-id = 73222 # wasmtime-publish
