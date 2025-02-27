@@ -299,7 +299,7 @@ fn support_use_external_texture_in_swap_chain(
                 global.adapter_as_hal::<wgc::api::Vulkan, _, bool>(self_id, |hal_adapter| {
                     let hal_adapter = match hal_adapter {
                         None => {
-                            let msg = CString::new(format!("Vulkan adapter is invalid")).unwrap();
+                            let msg = c"Vulkan adapter is invalid";
                             gfx_critical_note(msg.as_ptr());
                             return false;
                         }
@@ -429,7 +429,7 @@ pub unsafe extern "C" fn wgpu_server_adapter_request_device(
             global.adapter_as_hal::<wgc::api::Vulkan, _, bool>(self_id, |hal_adapter| {
                 let hal_adapter = match hal_adapter {
                     None => {
-                        let msg = CString::new(format!("Vulkan adapter is invalid")).unwrap();
+                        let msg = c"Vulkan adapter is invalid";
                         gfx_critical_note(msg.as_ptr());
                         return false;
                     }
@@ -452,7 +452,7 @@ pub unsafe extern "C" fn wgpu_server_adapter_request_device(
                         let hal_adapter = match hal_adapter {
                             None => {
                                 let msg =
-                                    CString::new(format!("Vulkan adapter is invalid")).unwrap();
+                                    c"Vulkan adapter is invalid";
                                 gfx_critical_note(msg.as_ptr());
                                 return None;
                             }
@@ -487,8 +487,7 @@ pub unsafe extern "C" fn wgpu_server_adapter_request_device(
                         let queue_family_index = match queue_family_index {
                             None => {
                                 let msg =
-                                    CString::new(format!("Vulkan device has no graphics queue"))
-                                        .unwrap();
+                                    c"Vulkan device has no graphics queue";
                                 gfx_critical_note(msg.as_ptr());
                                 return None;
                             }
@@ -1035,7 +1034,7 @@ pub extern "C" fn wgpu_vkimage_create_with_dma_buf(
             |hal_device| {
                 let hal_device = match hal_device {
                     None => {
-                        let msg = CString::new(format!("Vulkan device is invalid")).unwrap();
+                        let msg = c"Vulkan device is invalid";
                         gfx_critical_note(msg.as_ptr());
                         return None;
                     }
@@ -1062,8 +1061,7 @@ pub extern "C" fn wgpu_vkimage_create_with_dma_buf(
 
                 if count == 0 {
                     let msg =
-                        CString::new(format!("get_physical_device_format_properties2() failed"))
-                            .unwrap();
+                        c"get_physical_device_format_properties2() failed";
                     gfx_critical_note(msg.as_ptr());
                     return None;
                 }
@@ -1099,7 +1097,7 @@ pub extern "C" fn wgpu_vkimage_create_with_dma_buf(
 
                 if modifier_props.is_empty() {
                     let msg =
-                        CString::new(format!("format not supported for dmabuf import")).unwrap();
+                        c"format not supported for dmabuf import";
                     gfx_critical_note(msg.as_ptr());
                     return None;
                 }
@@ -1186,8 +1184,7 @@ pub extern "C" fn wgpu_vkimage_create_with_dma_buf(
 
                 let index = match index {
                     None => {
-                        let msg = CString::new(format!("Failed to get DEVICE_LOCAL memory index"))
-                            .unwrap();
+                        let msg = c"Failed to get DEVICE_LOCAL memory index";
                         gfx_critical_note(msg.as_ptr());
                         return None;
                     }
@@ -1228,7 +1225,7 @@ pub extern "C" fn wgpu_vkimage_create_with_dma_buf(
                 });
                 let modifier_prop = match modifier_prop {
                     None => {
-                        let msg = CString::new(format!("failed to find modifier_prop")).unwrap();
+                        let msg = c"failed to find modifier_prop";
                         gfx_critical_note(msg.as_ptr());
                         return None;
                     }
@@ -1300,7 +1297,7 @@ pub extern "C" fn wgpu_vkimage_get_file_descriptor(
         global.device_as_hal::<wgc::api::Vulkan, _, i32>(device_id, |hal_device| {
             let hal_device = match hal_device {
                 None => {
-                    let msg = CString::new(format!("Vulkan device is invalid")).unwrap();
+                    let msg = c"Vulkan device is invalid";
                     gfx_critical_note(msg.as_ptr());
                     return -1;
                 }
@@ -1562,7 +1559,7 @@ impl Global {
         };
 
         if dx12_device.is_none() {
-            let msg = CString::new(format!("dx12 device is none")).unwrap();
+            let msg = c"dx12 device is none";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1583,7 +1580,7 @@ impl Global {
             )
         };
         if ret != true {
-            let msg = CString::new(format!("Failed to create external texture")).unwrap();
+            let msg = c"Failed to create external texture";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1592,7 +1589,7 @@ impl Global {
 
         let handle = unsafe { wgpu_server_get_external_texture_handle(self.owner, texture_id) };
         if handle.is_null() {
-            let msg = CString::new(format!("Failed to get external texture handle")).unwrap();
+            let msg = c"Failed to get external texture handle";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1602,7 +1599,7 @@ impl Global {
         let res =
             unsafe { dx12_device.OpenSharedHandle(Foundation::HANDLE(handle), &mut resource) };
         if res.is_err() || resource.is_none() {
-            let msg = CString::new(format!("Failed to open shared handle")).unwrap();
+            let msg = c"Failed to open shared handle";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1655,7 +1652,7 @@ impl Global {
             )
         };
         if ret != true {
-            let msg = CString::new(format!("Failed to create external texture")).unwrap();
+            let msg = c"Failed to create external texture";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1664,7 +1661,7 @@ impl Global {
 
         let handle = unsafe { wgpu_server_get_vk_image_handle(self.owner, texture_id) };
         if handle.is_null() {
-            let msg = CString::new(format!("Failed to get VkImageHandle")).unwrap();
+            let msg = c"Failed to get VkImageHandle";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1675,7 +1672,7 @@ impl Global {
 
         let fd = unsafe { wgpu_server_get_dma_buf_fd(self.owner, texture_id) };
         if fd < 0 {
-            let msg = CString::new(format!("Failed to get DMABuf fd")).unwrap();
+            let msg = c"Failed to get DMABuf fd";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1691,7 +1688,7 @@ impl Global {
                 |hal_device| {
                     let hal_device = match hal_device {
                         None => {
-                            let msg = CString::new(format!("Vulkan device is invalid")).unwrap();
+                            let msg = c"Vulkan device is invalid";
                             gfx_critical_note(msg.as_ptr());
                             return None;
                         }
@@ -1738,7 +1735,7 @@ impl Global {
 
                     let memory_req = device.get_image_memory_requirements(image);
                     if memory_req.size > vk_image_wrapper.memory_size {
-                        let msg = CString::new(format!("Invalid memory size")).unwrap();
+                        let msg = c"Invalid memory size";
                         gfx_critical_note(msg.as_ptr());
                         return None;
                     }
@@ -1787,7 +1784,7 @@ impl Global {
 
         let image_holder = match image_holder {
             None => {
-                let msg = CString::new(format!("Failed to get vk::Image")).unwrap();
+                let msg = c"Failed to get vk::Image";
                 unsafe {
                     gfx_critical_note(msg.as_ptr());
                 }
@@ -1855,7 +1852,7 @@ impl Global {
             )
         };
         if ret != true {
-            let msg = CString::new(format!("Failed to create external texture")).unwrap();
+            let msg = c"Failed to create external texture";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1865,7 +1862,7 @@ impl Global {
         let io_surface_id =
             unsafe { wgpu_server_get_external_io_surface_id(self.owner, texture_id) };
         if io_surface_id == 0 {
-            let msg = CString::new(format!("Failed to get io surface id")).unwrap();
+            let msg = c"Failed to get io surface id";
             unsafe {
                 gfx_critical_note(msg.as_ptr());
             }
@@ -1882,7 +1879,7 @@ impl Global {
                 |hal_device| {
                     let hal_device = match hal_device {
                         None => {
-                            let msg = CString::new(format!("metal device is invalid")).unwrap();
+                            let msg = c"metal device is invalid";
                             gfx_critical_note(msg.as_ptr());
                             return None;
                         }
@@ -1912,7 +1909,7 @@ impl Global {
                         plane:0];
 
                         if raw_texture.as_ptr().is_null() {
-                            let msg = CString::new(format!("Failed to create metal::Texture for swap chain")).unwrap();
+                            let msg = c"Failed to create metal::Texture for swap chain";
                             gfx_critical_note(msg.as_ptr());
                             return None;
                         }
