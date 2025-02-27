@@ -262,6 +262,25 @@ class VkImageHandle {
   const RawId mDeviceId;
   const ffi::WGPUVkImageHandle* mVkImageHandle;
 };
+
+class VkSemaphoreHandle {
+ public:
+  explicit VkSemaphoreHandle(
+      WebGPUParent* aParent, const ffi::WGPUDeviceId aDeviceId,
+      const ffi::WGPUVkSemaphoreHandle* aVkSemaphoreHandle)
+      : mParent(aParent),
+        mDeviceId(aDeviceId),
+        mVkSemaphoreHandle(aVkSemaphoreHandle) {}
+
+  const ffi::WGPUVkSemaphoreHandle* Get() { return mVkSemaphoreHandle; }
+
+  ~VkSemaphoreHandle();
+
+ protected:
+  const WeakPtr<WebGPUParent> mParent;
+  const RawId mDeviceId;
+  const ffi::WGPUVkSemaphoreHandle* mVkSemaphoreHandle;
+};
 #endif
 
 }  // namespace webgpu

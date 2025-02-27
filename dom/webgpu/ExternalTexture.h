@@ -54,7 +54,7 @@ class ExternalTexture {
 
   gfx::IntSize GetSize() { return gfx::IntSize(mWidth, mHeight); }
 
-  void SetSubmissionIndex(uint64_t aSubmissionIndex);
+  virtual void SetSubmissionIndex(uint64_t aSubmissionIndex);
   uint64_t GetSubmissionIndex() const { return mSubmissionIndex; }
 
   void SetOwnerId(const layers::RemoteTextureOwnerId aOwnerId) {
@@ -64,6 +64,8 @@ class ExternalTexture {
     MOZ_ASSERT(mOwnerId.IsValid());
     return mOwnerId;
   }
+
+  virtual void onBeforeQueueSubmit(RawId aQueueId) {}
 
   const uint32_t mWidth;
   const uint32_t mHeight;
