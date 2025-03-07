@@ -140,6 +140,7 @@ enum GPUFeatureName {
     "float32-blendable",
     "clip-distances",
     "dual-source-blending",
+    "subgroups",
 };
 
 [Exposed=(Window, Worker), SecureContext]
