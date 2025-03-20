@@ -57,6 +57,18 @@ uint32_t AdapterInfo::SubgroupMaxSize() const {
   return 128;
 }
 
+bool AdapterInfo::IsFallbackAdapter() const {
+  if (GetParentObject()->ShouldResistFingerprinting(
+          RFPTarget::WebGPUIsFallbackAdapter)) {
+    // Always report hardware support for WebGPU.
+    // This behaviour matches with media capabilities API.
+    return false;
+  }
+
+  return mAboutSupportInfo->device_type ==
+         ffi::WGPUDeviceType::WGPUDeviceType_Cpu;
+}
+
 void AdapterInfo::GetWgpuName(nsString& s) const {
   s = mAboutSupportInfo->name;
 }

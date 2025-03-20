@@ -72,6 +72,7 @@ interface GPUAdapterInfo {
     readonly attribute DOMString description;
     readonly attribute unsigned long subgroupMinSize;
     readonly attribute unsigned long subgroupMaxSize;
+    readonly attribute boolean isFallbackAdapter;
 
     // Non-standard; see <https://bugzilla.mozilla.org/show_bug.cgi?id=1831994>.
     [ChromeOnly] readonly attribute DOMString wgpuName;
