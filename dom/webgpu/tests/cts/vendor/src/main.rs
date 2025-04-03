@@ -2,7 +2,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     env::set_current_dir,
     path::PathBuf,
-    process::ExitCode,
+    process::{ExitCode, Stdio},
 };
 
 use clap::Parser;
@@ -10,6 +10,7 @@ use ezcmd::EasyCommand;
 use itertools::Itertools;
 use miette::{ensure, miette, Context, Diagnostic, IntoDiagnostic, Report, SourceSpan};
 use regex::Regex;
+use shell_words::split;
 
 use crate::{
     fs::{create_dir_all, remove_file, FileRoot},
@@ -56,33 +57,36 @@ fn run(args: CliArgs) -> miette::Result<()> {
 
     let npm_bin = which("npm", "NPM binary")?;
 
+    let node_bin = which("node", "Node.js binary")?;
+
     set_current_dir(&*cts_ckt)
         .into_diagnostic()
         .wrap_err("failed to change working directory to CTS checkout")?;
     log::debug!("changed CWD to {cts_ckt}");
 
-    let mut npm_ci_cmd = EasyCommand::simple(&npm_bin, ["ci"]);
-    log::info!(
-        "ensuring a clean {} directory with {npm_ci_cmd}…",
-        cts_ckt.child("node_modules"),
-    );
-    npm_ci_cmd.run().into_diagnostic()?;
+    // let mut npm_ci_cmd = EasyCommand::simple(&npm_bin, ["ci"]);
+    // log::info!(
+    //     "ensuring a clean {} directory with {npm_ci_cmd}…",
+    //     cts_ckt.child("node_modules"),
+    // );
+    // npm_ci_cmd.run().into_diagnostic()?;
 
-    let out_wpt_dir = cts_ckt.regen_dir("out-wpt", |out_wpt_dir| {
-        let mut npm_run_wpt_cmd = EasyCommand::simple(&npm_bin, ["run", "wpt"]);
-        log::info!("generating WPT test cases into {out_wpt_dir} with {npm_run_wpt_cmd}…");
-        npm_run_wpt_cmd.run().into_diagnostic()
-    })?;
+    let out_wpt_dir = cts_ckt.child("out-wpt");
+    // let out_wpt_dir = cts_ckt.regen_dir("out-wpt", |out_wpt_dir| {
+    //     let mut npm_run_wpt_cmd = EasyCommand::simple(&npm_bin, ["run", "wpt"]);
+    //     log::info!("generating WPT test cases into {out_wpt_dir} with {npm_run_wpt_cmd}…");
+    //     npm_run_wpt_cmd.run().into_diagnostic()
+    // })?;
 
     let cts_https_html_path = out_wpt_dir.child("cts-withsomeworkers.https.html");
 
-    {
-        for file_name in ["cts-chunked2sec.https.html", "cts.https.html"] {
-            let file_name = out_wpt_dir.child(file_name);
-            log::info!("removing extraneous {file_name}…");
-            remove_file(&*file_name)?;
-        }
-    }
+    // {
+    //     for file_name in ["cts-chunked2sec.https.html", "cts.https.html"] {
+    //         let file_name = out_wpt_dir.child(file_name);
+    //         log::info!("removing extraneous {file_name}…");
+    //         remove_file(&*file_name)?;
+    //     }
+    // }
 
     log::info!("analyzing {cts_https_html_path}…");
     let cts_https_html_content = fs::read_to_string(&*cts_https_html_path)?;
@@ -259,7 +263,115 @@ fn run(args: CliArgs) -> miette::Result<()> {
         log::info!("  …found {} test cases", cts_cases.len());
     }
 
-    cts_ckt.regen_dir(out_wpt_dir.join("cts"), |cts_tests_dir| {
+    let nth_colon_idx = |nth, path: &str| {
+        path.match_indices(':')
+            .nth(nth)
+            .map(|(idx, _s)| idx)
+            .ok_or_else(|| {
+                miette::diagnostic!(
+                    "failed to split suite and test path segments from CTS path `{}`",
+                    path
+                )
+            })
+    };
+
+    // TODO: Make something unit-testable that can have tests plugged in.
+    let config: &[_] = &[
+        (
+            "webgpu:api,operation,command_buffer,image_copy:mip_levels:",
+            "initMethod",
+        ),
+        // ("asdfasdf", &[]),
+        // ("asdfasdf", &[]),
+        // ("asdfasdf", &[]),
+    ];
+    #[derive(Debug)]
+    struct TestSliceEntry<'a> {
+        expected_first_param: &'a str,
+        observed_values: BTreeSet<&'a str>,
+        seen: bool,
+    }
+
+    impl<'a> TestSliceEntry<'a> {
+        fn process(&mut self, test_group_and_later_path: &'a str) -> miette::Result<()> {
+            let rest = test_group_and_later_path;
+
+            let Self {
+                ref expected_first_param,
+                observed_values,
+                seen,
+            } = self;
+
+            let (ident, rest) = rest.split_once("=\"").ok_or_else(|| {
+                // TODO: better plz
+                miette::diagnostic!("failed to get start of value of first arg")
+            })?;
+
+            if ident != *expected_first_param {
+                // TODO: remember if we've actually seen a correct one before
+                // TODO: better plz, add context of configged item
+                return Err(miette::diagnostic!(
+                    "expected {:?}, got {:?}",
+                    expected_first_param,
+                    ident
+                )
+                .into());
+            }
+
+            let (value, _rest) = rest.split_once('"').ok_or_else(|| {
+                // TODO: better plz
+                miette::diagnostic!("failed to get end of value of first arg")
+            })?;
+
+            observed_values.insert(value);
+            *seen = true;
+
+            Ok(())
+        }
+    }
+
+    let mut tests_to_slice = config
+        .iter()
+        .copied()
+        .map(|(key, val)| {
+            (
+                key,
+                TestSliceEntry {
+                    expected_first_param: val,
+                    observed_values: BTreeSet::new(),
+                    seen: false,
+                },
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    let all_tests_buf;
+    {
+        let mut cmd = EasyCommand::new_with(&node_bin, |cmd| {
+            cmd.args(["tools/run_node", "--list", "webgpu:*"])
+                .stderr(Stdio::inherit())
+        });
+        log::info!("requesting exhaustive list of tests using {cmd}…");
+        // let stdout = cmd.output().into_diagnostic()?.stdout;
+        // all_tests_buf = String::from_utf8(stdout)
+        //     .into_diagnostic()
+        //     .context("failed to read output of exhaustive test listing command")?;
+        all_tests_buf = include_str!("./sublisting.txt");
+        log::info!("building slice entries from list of tests…");
+        for subtest in all_tests_buf.lines() {
+            let (test_path_prefix, rest) = dbg!(subtest).split_at(nth_colon_idx(2, subtest)? + 1);
+            if let Some(entry) = tests_to_slice.get_mut(dbg!(test_path_prefix)) {
+                dbg!(rest);
+                entry.process(rest)?;
+            }
+        }
+    }
+
+    dbg!(&tests_to_slice);
+
+    let cts_tests_dir = out_wpt_dir.child("cts");
+    /* cts_ckt.regen_dir(out_wpt_dir.join("cts"), |cts_tests_dir| */
+    {
         log::info!("re-distributing tests into single file per test path…");
         let mut failed_writing = false;
         let mut cts_cases_by_spec_file_dir = BTreeMap::<_, BTreeMap<_, BTreeSet<_>>>::new();
@@ -294,6 +406,7 @@ fn run(args: CliArgs) -> miette::Result<()> {
                             continue;
                         }
                     };
+                // TODO: check if this is a test we need to slice
                 let slashed = path[..subtest_and_later_start_idx].replace([':', ','], "/");
                 cts_tests_dir.child(slashed)
             };
@@ -307,6 +420,8 @@ fn run(args: CliArgs) -> miette::Result<()> {
                 log::warn!("duplicate entry {meta:?} detected")
             }
         }
+
+        return Ok(());
 
         struct WptEntry<'a> {
             cases: BTreeSet<&'a str>,
@@ -451,8 +566,8 @@ fn run(args: CliArgs) -> miette::Result<()> {
         }
         log::debug!("  …finished moving ready-to-go WPT test files");
 
-        Ok(())
-    })?;
+        // Ok(())
+    } /* )?; */
 
     log::info!("All done! Now get your CTS _ON_! :)");
 
