@@ -151,6 +151,7 @@ enum GPUFeatureName {
     "clip-distances",
     "dual-source-blending",
     "subgroups",
+    "core-features-and-limits",
 };
 
 [Func="mozilla::webgpu::Instance::PrefEnabled",
