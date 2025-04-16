@@ -66,28 +66,29 @@ fn run(args: CliArgs) -> miette::Result<()> {
         .wrap_err("failed to change working directory to CTS checkout")?;
     log::debug!("changed CWD to {cts_ckt}");
 
-    let mut npm_ci_cmd = EasyCommand::simple(&npm_bin, ["ci"]);
-    log::info!(
-        "ensuring a clean {} directory with {npm_ci_cmd}…",
-        cts_ckt.child("node_modules"),
-    );
-    npm_ci_cmd.run().into_diagnostic()?;
+    // let mut npm_ci_cmd = EasyCommand::simple(&npm_bin, ["ci"]);
+    // log::info!(
+    //     "ensuring a clean {} directory with {npm_ci_cmd}…",
+    //     cts_ckt.child("node_modules"),
+    // );
+    // npm_ci_cmd.run().into_diagnostic()?;
 
-    let out_wpt_dir = cts_ckt.regen_dir("out-wpt", |out_wpt_dir| {
-        let mut npm_run_wpt_cmd = EasyCommand::simple(&npm_bin, ["run", "wpt"]);
-        log::info!("generating WPT test cases into {out_wpt_dir} with {npm_run_wpt_cmd}…");
-        npm_run_wpt_cmd.run().into_diagnostic()
-    })?;
+    let out_wpt_dir = cts_ckt.child("out-wpt");
+    // let out_wpt_dir = cts_ckt.regen_dir("out-wpt", |out_wpt_dir| {
+    //     let mut npm_run_wpt_cmd = EasyCommand::simple(&npm_bin, ["run", "wpt"]);
+    //     log::info!("generating WPT test cases into {out_wpt_dir} with {npm_run_wpt_cmd}…");
+    //     npm_run_wpt_cmd.run().into_diagnostic()
+    // })?;
 
     let cts_https_html_path = out_wpt_dir.child("cts-withsomeworkers.https.html");
 
-    {
-        for file_name in ["cts-chunked2sec.https.html", "cts.https.html"] {
-            let file_name = out_wpt_dir.child(file_name);
-            log::info!("removing extraneous {file_name}…");
-            remove_file(&*file_name)?;
-        }
-    }
+    // {
+    //     for file_name in ["cts-chunked2sec.https.html", "cts.https.html"] {
+    //         let file_name = out_wpt_dir.child(file_name);
+    //         log::info!("removing extraneous {file_name}…");
+    //         remove_file(&*file_name)?;
+    //     }
+    // }
 
     log::info!("analyzing {cts_https_html_path}…");
     let cts_https_html_content = fs::read_to_string(&*cts_https_html_path)?;
@@ -287,17 +288,18 @@ fn run(args: CliArgs) -> miette::Result<()> {
             .map(|(test_path, config)| (test_path, test_split::Entry::from_config(config)))
             .collect::<BTreeMap<_, _>>();
 
-        let mut cmd = EasyCommand::new_with(&node_bin, |cmd| {
-            cmd.args(["tools/run_node", "--list", "webgpu:*"])
-                .stderr(Stdio::inherit())
-        });
-        log::info!("  requesting exhaustive list of tests using {cmd}…");
-        test_listing_buf = {
-            let stdout = cmd.output().into_diagnostic()?.stdout;
-            String::from_utf8(stdout)
-                .into_diagnostic()
-                .context("failed to read output of exhaustive test listing command")?
-        };
+        // let mut cmd = EasyCommand::new_with(&node_bin, |cmd| {
+        //     cmd.args(["tools/run_node", "--list", "webgpu:*"])
+        //         .stderr(Stdio::inherit())
+        // });
+        // log::info!("  requesting exhaustive list of tests using {cmd}…");
+        // test_listing_buf = {
+        //     let stdout = cmd.output().into_diagnostic()?.stdout;
+        //     String::from_utf8(stdout)
+        //         .into_diagnostic()
+        //         .context("failed to read output of exhaustive test listing command")?
+        // };
+        test_listing_buf = include_str!("./listing.txt");
 
         log::info!("  building index from list of tests…");
         for full_path in test_listing_buf.lines() {
@@ -312,7 +314,9 @@ fn run(args: CliArgs) -> miette::Result<()> {
         tests_to_split
     };
 
-    cts_ckt.regen_dir(out_wpt_dir.join("cts"), |cts_tests_dir| {
+    // cts_ckt.regen_dir(out_wpt_dir.join("cts"), |cts_tests_dir| {
+    let cts_tests_dir = out_wpt_dir.child("cts");
+    {
         log::info!("re-distributing tests into single file per test path…");
         let mut failed_writing = false;
         let mut cts_cases_by_spec_file_dir = BTreeMap::<_, BTreeMap<_, BTreeSet<_>>>::new();
@@ -376,18 +380,23 @@ fn run(args: CliArgs) -> miette::Result<()> {
                         expected_name,
                         split_to,
                         observed_values,
-                    } => match split_to {
-                        test_split::SplitParamsTo::SeparateTestsInSameFile => {
-                            for value in observed_values {
-                                let new_meta = meta.replace(
-                                    &*path,
-                                    &format!("{test_path}:{expected_name}={value};*"),
-                                );
-                                assert_ne!(meta, new_meta);
-                                insert!(&file_path, new_meta.into());
+                    } => {
+                        log::warn!(
+                            "HOLY FRICK WE GOT A {path:?}; observed_values: {observed_values:?}"
+                        );
+                        match split_to {
+                            test_split::SplitParamsTo::SeparateTestsInSameFile => {
+                                for value in observed_values {
+                                    let new_meta = meta.replace(
+                                        &*path,
+                                        &format!("{test_path}:{expected_name}={value};*"),
+                                    );
+                                    assert_ne!(meta, new_meta);
+                                    insert!(&file_path, new_meta.into());
+                                }
                             }
                         }
-                    },
+                    }
                 }
             } else {
                 insert!(
@@ -396,6 +405,7 @@ fn run(args: CliArgs) -> miette::Result<()> {
                 )
             };
         }
+        dbg!(&cts_cases_by_spec_file_dir);
 
         test_split::assert_seen(tests_to_split.iter(), |seen| &seen.wpt_files);
 
@@ -500,8 +510,8 @@ fn run(args: CliArgs) -> miette::Result<()> {
         );
         log::debug!("  …finished writing new WPT test files!");
 
-        log::info!("  …removing {cts_https_html_path}, now that it's been divided up…");
-        remove_file(&cts_https_html_path)?;
+        // log::info!("  …removing {cts_https_html_path}, now that it's been divided up…");
+        // remove_file(&cts_https_html_path)?;
 
         log::info!("moving ready-to-go WPT test files into `cts`…");
 
@@ -541,9 +551,9 @@ fn run(args: CliArgs) -> miette::Result<()> {
                 .wrap_err_with(|| format!("failed to move {file} to {dst_path}"))?;
         }
         log::debug!("  …finished moving ready-to-go WPT test files");
-
-        Ok(())
-    })?;
+    }
+    //     Ok(())
+    // })?;
 
     log::info!("All done! Now get your CTS _ON_! :)");
 
