@@ -275,6 +275,7 @@ fn run(args: CliArgs) -> miette::Result<()> {
                 "webgpu:api,operation,command_buffer,image_copy:mip_levels",
                 Config {
                     new_sibling_basename: "image_copy__mip_levels",
+                    additional_path_components: &[PathComponent::TestName],
                     split_by: SplitBy::first_param(
                         "initMethod",
                         SplitParamsTo::SeparateTestsInSameFile,
@@ -358,18 +359,26 @@ fn run(args: CliArgs) -> miette::Result<()> {
                     continue;
                 }
             };
-            let (test_group_path, _test_name) = test_path.rsplit_once(':').unwrap();
+            let (test_group_path, test_name) = test_path.rsplit_once(':').unwrap();
             let test_group_path_components = test_group_path.split([':', ',']);
 
             if let Some(entry) = tests_to_split.get_mut(test_path) {
                 let test_split::Entry { seen, ref config } = entry;
                 let test_split::Config {
                     new_sibling_basename,
+                    additional_path_components,
                     split_by,
                 } = config;
 
                 let file_path = test_group_path_components
                     .chain([*new_sibling_basename])
+                    .chain(
+                        additional_path_components
+                            .iter()
+                            .map(|segment| match segment {
+                                test_split::PathComponent::TestName => test_name,
+                            }),
+                    )
                     .join_with("/")
                     .to_string();
 

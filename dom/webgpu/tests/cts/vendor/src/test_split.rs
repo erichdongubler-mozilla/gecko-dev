@@ -14,6 +14,7 @@ pub(crate) struct Config<O> {
     /// directory, instead of a sibling directory, then we would actually cause the child test to
     /// be run in multiple chunks. Therefore, it's required to split tests into siblings.
     pub new_sibling_basename: &'static str,
+    pub additional_path_components: &'static [PathComponent],
     /// How to split the test this entry refers to.
     pub split_by: SplitBy<O>,
 }
@@ -22,16 +23,24 @@ impl<O> Config<O> {
     pub fn map_observed_values<T>(self, f: impl FnOnce(O) -> T) -> Config<T> {
         let Self {
             new_sibling_basename,
+            additional_path_components,
             split_by,
         } = self;
         Config {
             new_sibling_basename,
+            additional_path_components,
             split_by: split_by.map_observed_values(f),
         }
     }
 }
 
 /// A [`Config::split_by`] value.
+#[derive(Debug)]
+pub(crate) enum PathComponent {
+    TestName,
+    // FirstParamName,
+}
+
 #[derive(Debug)]
 pub(crate) enum SplitBy<O> {
     FirstParam {
@@ -135,6 +144,7 @@ impl<'a> Entry<'a> {
 
         let Config {
             new_sibling_basename: _,
+            additional_path_components: _,
             split_by,
         } = config;
 
