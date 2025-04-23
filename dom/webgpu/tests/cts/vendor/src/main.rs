@@ -270,16 +270,28 @@ fn run(args: CliArgs) -> miette::Result<()> {
 
         let test_split_config = {
             use test_split::*;
-            [(
-                "webgpu:api,operation,command_buffer,image_copy:mip_levels",
-                Config {
-                    new_sibling_basename: "image_copy__mip_levels",
-                    split_by: SplitBy::first_param(
-                        "initMethod",
-                        SplitParamsTo::SeparateTestsInSameFile,
-                    ),
-                },
-            )]
+            [
+                (
+                    "webgpu:api,operation,command_buffer,image_copy:mip_levels",
+                    Config {
+                        new_sibling_basename: "image_copy__mip_levels",
+                        split_by: SplitBy::first_param(
+                            "initMethod",
+                            SplitParamsTo::SeparateTestsInSameFile,
+                        ),
+                    },
+                ),
+                (
+                    "webgpu:shader,execution,expression,call,builtin,textureSampleLevel:sampled_3d_coords,lodClamp",
+                    Config {
+                        new_sibling_basename: "textureSampleLevel__sampled_3d_coords__lodClamp",
+                        split_by: SplitBy::first_param(
+                            "stage",
+                            SplitParamsTo::SeparateTestsInSameFile,
+                        ),
+                    },
+                ),
+            ]
         };
 
         let mut tests_to_split = test_split_config
