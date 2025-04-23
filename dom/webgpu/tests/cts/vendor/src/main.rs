@@ -301,6 +301,16 @@ fn run(args: CliArgs) -> miette::Result<()> {
                         ),
                     },
                 ),
+                (
+                    "webgpu:web_platform,copyToTexture,ImageBitmap:from_ImageData",
+                    Config {
+                        new_sibling_basename: "from_ImageData",
+                        split_by: SplitBy::first_param(
+                            "alpha",
+                            SplitParamsTo::SeparateTestsInSameFile,
+                        ),
+                    },
+                ),
             ]
         };
 
